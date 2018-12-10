@@ -71,17 +71,17 @@ module Superbara
                 else
                   input.split("").each do |c|
                     Superbara.human_typing_delay
-                    if RUBY_PLATFORM.downcase.include? 'linux'  
+                    if RUBY_PLATFORM.downcase.include? 'linux'
                       `xdotool type #{c}`
                     else
                       `cliclick t:#{c}`
                     end
-		  end
                 end
+              end
               when Symbol
                 Superbara.human_typing_delay
                 if RUBY_PLATFORM.downcase.include? 'linux'
-                  `xdotool type #{input}`
+                  `xdotool key #{input}`
                 else
                   `cliclick kp:#{input}`
                 end
