@@ -54,6 +54,32 @@ module Superbara
             self.native.type(*inputs)
           end
 
+          def key(*inputs)
+            clickX = self.location["x"] + self.location["width"] / 2
+            clickY = self.location["y"] + self.location["height"] / 2
+            `eval $(xdotool getmouselocation --shell) && xdotool mousemove #{clickX} #{clickY} click 1 && xdotool mousemove $X $Y`
+            for input in inputs
+              case input
+              when String
+                if input == "" && self
+                  self.clear
+                else
+                  input.split("").each do |c|
+                    Superbara.human_typing_delay
+                    `xdotool type #{c}`
+                  end
+                end
+              when Symbol
+                Superbara.human_typing_delay
+                `xdotool type #{input}`
+              end
+
+              sleep 0.5 # without this events might not get sent properly
+            end
+
+            true
+          end
+
         end #Includes
 
         module Prepends
