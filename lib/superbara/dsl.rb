@@ -105,11 +105,16 @@ return Array.from(
 
   def klik(selector, options={})
     Superbara.output "clicking '#{selector}' with #{options.inspect}"
+    platform = RUBY_PLATFORM
     el = find selector, options
     coords = el.location
     klikX = coords["x"] + coords["width"] / 2
     klikY = coords["y"] + coords["height"] / 2
-    `xdotool mousemove #{klikX} #{klikY} click 1`
+    if platform.downcase.include? 'linux'
+      `xdotool mousemove #{klikX} #{klikY} click 1`
+    else
+      `cliclick c:#{klikX.floor},#{klikY.floor}`
+    end
     return el
   end
 
@@ -396,11 +401,33 @@ return Array.from(
   end
 
   def fullscreen(full=true)
+    platform = RUBY_PLATFORM
     if full
-      page.driver.fullscreen_window current_window.handle
+      if platform.downcase.include? 'linux'
+        page.driver.fullscreen_window current_window.handle
+      else
+        execute_script <<-FE
+          fsbutton = document.createElement('button');
+          fsbutton.id = 'fsbutton';
+          fsbutton.style.width = "10px";
+          fsbutton.style.height = "5px";
+          document.body.appendChild(fsbutton);
+          fsbutton.addEventListener('click', function () { document.body.webkitRequestFullScreen(); });
+        FE
+
+        begin
+          click '#fsbutton'
+        rescue
+        end
+
+        execute_script <<-FE
+          fsbutton = document.getElementById('fsbutton')
+          document.body.removeChild(fsbutton)
+        FE
+      end
     else
       page.driver.maximize_window current_window.handle
     end
-  end
 
+  end
 end; end
