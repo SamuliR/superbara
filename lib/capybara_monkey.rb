@@ -57,26 +57,37 @@ module Superbara
           def key(*inputs)
             clickX = self.location["x"] + self.location["width"] / 2
             clickY = self.location["y"] + self.location["height"] / 2
-            `eval $(xdotool getmouselocation --shell) && xdotool mousemove #{clickX} #{clickY} click 1 && xdotool mousemove $X $Y`
+            if RUBY_PLATFORM.downcase.include? 'linux'
+              `eval $(xdotool getmouselocation --shell) && xdotool mousemove #{clickX} #{clickY} click 1 && xdotool mousemove $X $Y`
+            else
+              `cliclick c:#{clickX.floor},#{clickY.floor}`
+            end
+
             for input in inputs
               case input
               when String
-                if input == "" && self
-                  self.clear
+                if input == "" && self.native
+                  self.native.clear
                 else
                   input.split("").each do |c|
                     Superbara.human_typing_delay
-                    `xdotool type #{c}`
-                  end
+                    if RUBY_PLATFORM.downcase.include? 'linux'  
+                      `xdotool type #{c}`
+                    else
+                      `cliclick t:#{c}`
+                    end
+		  end
                 end
               when Symbol
                 Superbara.human_typing_delay
-                `xdotool type #{input}`
+                if RUBY_PLATFORM.downcase.include? 'linux'
+                  `xdotool type #{input}`
+                else
+                  `cliclick kp:#{input}`
+                end
+                sleep 0.5 # without this events might not get sent properly
               end
-
-              sleep 0.5 # without this events might not get sent properly
             end
-
             true
           end
 
