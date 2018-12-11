@@ -55,26 +55,8 @@ module Superbara
           end
 
           def key(*inputs)
-            fullscreen = '
-              function goFullscreen() {
-                var el = document.documentElement,
-                rfs = el.requestFullscreen || el.webkitRequestFullScreen;
-                rfs.call(el);
-                document.removeEventListener("click", goFullscreen);
-              };
-              document.addEventListener("click", goFullscreen);
-            '
-            Capybara.execute_script(fullscreen)
+            Capybara.page.switch_to_window Capybara.current_window
             find(:xpath, self.path).click
-            #wait for fullscreen animation
-            sleep 1
-
-            if RUBY_PLATFORM.downcase.include? 'linux'
-              clickX = self.location['x'] + self.location['width'] / 2
-              clickY = self.location['y'] + self.location['height'] / 2
-              `eval $(xdotool getmouselocation --shell) && xdotool mousemove #{clickX} #{clickY} click 1 && xdotool mousemove $X $Y`
-            end
-
             for input in inputs
               case input
               when String
@@ -86,14 +68,10 @@ module Superbara
                     if RUBY_PLATFORM.downcase.include? 'linux'
                       `xdotool type '#{c}'`
                     else
-                      if c == ' '
-                        `cliclick kp:space`
-                      else
-                        `cliclick t:#{c}`
-                      end
+                      `cliclick t:'#{c}'`
+                    end
                   end
                 end
-              end
               when Symbol
                 Superbara.human_typing_delay
                 if RUBY_PLATFORM.downcase.include? 'linux'
@@ -104,7 +82,7 @@ module Superbara
                 sleep 0.5 # without this events might not get sent properly
               end
             end
-            Capybara.page.driver.maximize_window Capybara.page.driver.current_window_handle
+            true
           end
 
         end #Includes
