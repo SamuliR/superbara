@@ -7,6 +7,10 @@ module Superbara; module DSL
     Superbara::Helpers.type *inputs
   end
 
+  def key(*inputs)
+    Superbara::Helpers.key *inputs
+  end
+
   def assert(message=nil, &block)
     failed = if block
       !block.call

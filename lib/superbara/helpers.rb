@@ -22,6 +22,36 @@ module Superbara; module Helpers
     true
   end
 
+  def self.key(*inputs)
+    Capybara.page.switch_to_window Capybara.current_window
+    for input in inputs
+      case input
+      when String
+        if input == "" && self.native
+          self.native.clear
+        else
+          input.split("").each do |c|
+            Superbara.human_typing_delay
+            if RUBY_PLATFORM.downcase.include? 'linux'
+              `xdotool type '#{c}'`
+            else
+              `cliclick t:'#{c}'`
+            end
+          end
+        end
+      when Symbol
+        Superbara.human_typing_delay
+        if RUBY_PLATFORM.downcase.include? 'linux'
+          `xdotool key #{input}`
+        else
+          `cliclick kp:#{input}`
+        end
+        sleep 0.5 # without this events might not get sent properly
+      end
+    end
+    true
+  end
+
   def self.highlight_element(elem, styles={}, remove_highlight=0.1)
     remove_highlight_millis = (1000 * remove_highlight).round
 
