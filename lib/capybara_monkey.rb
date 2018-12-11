@@ -55,25 +55,25 @@ module Superbara
           end
 
           def key(*inputs)
-            clickX = self.location['x'] + self.location['width'] / 2
-            clickY = self.location['y'] + self.location['height'] / 2
-            if RUBY_PLATFORM.downcase.include? "linux"
+            fullscreen = '
+              function goFullscreen() {
+                var el = document.documentElement,
+                rfs = el.requestFullscreen || el.webkitRequestFullScreen;
+                rfs.call(el);
+                document.removeEventListener("click", goFullscreen);
+              };
+              document.addEventListener("click", goFullscreen);
+            '
+            Capybara.execute_script(fullscreen)
+            find(:xpath, self.path).click
+            #wait for fullscreen animation
+            sleep 1
+
+            if RUBY_PLATFORM.downcase.include? 'linux'
+              clickX = self.location['x'] + self.location['width'] / 2
+              clickY = self.location['y'] + self.location['height'] / 2
               `eval $(xdotool getmouselocation --shell) && xdotool mousemove #{clickX} #{clickY} click 1 && xdotool mousemove $X $Y`
-            else
-              fullscreen = '
-		function goFullscreen() {
-		  var el = document.documentElement,
-		  rfs = el.webkitRequestFullScreen;
-                  rfs.call(el);
-		  document.removeEventListener(goFullscreen);
-		};
-	        document.addEventListener("click", goFullscreen);
-	      '
-	      Capybara.execute_script(fullscreen)
-              find(:xpath, self.path).click
-	      #wait for fullscreen animation
-              sleep 1
-	    end
+            end
 
             for input in inputs
               case input
@@ -84,13 +84,13 @@ module Superbara
                   input.split("").each do |c|
                     Superbara.human_typing_delay
                     if RUBY_PLATFORM.downcase.include? 'linux'
-                      `xdotool type #{c}`
+                      `xdotool type '#{c}'`
                     else
-		      if c == ' '
-			`cliclick kp:space`
-		      else
+                      if c == ' '
+                        `cliclick kp:space`
+                      else
                         `cliclick t:#{c}`
-                      end    
+                      end
                   end
                 end
               end
@@ -104,7 +104,7 @@ module Superbara
                 sleep 0.5 # without this events might not get sent properly
               end
             end
-	    Capybara.page.driver.maximize_window Capybara.page.driver.current_window_handle
+            Capybara.page.driver.maximize_window Capybara.page.driver.current_window_handle
           end
 
         end #Includes
